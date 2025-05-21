@@ -15,7 +15,7 @@ router.post("/login", tryCatch(authController.login));
 
 // Autres routes utilisateurs (protégées ou non selon le cas)
 router.get("/myprofile", photoUpload.single("image"), authorizationAdmin, tryCatch(authController.getLoggedInUserInfo));
-router.get("/user", photoUpload.single("image"), tryCatch(authController.getAllUsers));
+router.get("/", photoUpload.single("image"), tryCatch(authController.getAllUsers));
 router.get("/:id", photoUpload.single("image"), tryCatch(authController.getUserById));
 router.put("/:id", photoUpload.single("image"), tryCatch(authController.updateUser));
 router.delete("/:id", tryCatch(authController.deleteUser));

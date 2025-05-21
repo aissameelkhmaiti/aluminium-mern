@@ -1,9 +1,8 @@
 // CONTROLLER : controllers/userController.js
+// CONTROLLER : controllers/userController.js
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const { cloudinaryUploadImage } = require("../utils/cloudinary");
@@ -11,21 +10,25 @@ const { cloudinaryUploadImage } = require("../utils/cloudinary");
 exports.createAdmin = asyncHandler(async (req, res) => {
   const { email, password, first_name, last_name, role } = req.body;
 
+  // Check if email already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res.status(400).json({ message: "Email déjà utilisé" });
   }
 
+  // Check if an image is uploaded
   if (!req.file) {
     return res.status(400).json({ message: "Aucune image fournie" });
   }
 
+  // Upload image to Cloudinary
   const imagePath = path.join(__dirname, `../images/${req.file.filename}`);
   const result = await cloudinaryUploadImage(imagePath);
+
+  // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const verificationToken = jwt.sign({ email }, process.env.TOKEN_KEY, { expiresIn: "1d" });
-
+  // Create user directly (no verificationToken, no email sending)
   const admin = new User({
     email,
     password: hashedPassword,
@@ -33,40 +36,20 @@ exports.createAdmin = asyncHandler(async (req, res) => {
     last_name,
     role: role || "admin",
     image: { url: result.secure_url, publicId: result.public_id },
-    verificationToken,
-    isVerified: false,
+    isVerified: true, // Immediately verified
   });
 
   const savedAdmin = await admin.save();
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const verificationLink = `${process.env.CLIENT_URL}/verify/${verificationToken}`;
-
-  const mailOptions = {
-    from: `"MonSite Support" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Vérifiez votre compte",
-    html: `<h2>Bienvenue ${first_name}</h2>
-           <p>Veuillez vérifier votre compte en cliquant sur le lien suivant :</p>
-           <a href="${verificationLink}">Activer mon compte</a>
-           <p><em>Ce lien expire dans 24 heures.</em></p>`,
-  };
-
-  await transporter.sendMail(mailOptions);
+  // Delete the image from the local disk
   fs.unlinkSync(imagePath);
 
   res.status(201).json({
-    message: "Admin créé. Vérifiez votre email pour activer le compte.",
+    message: "Admin créé avec succès.",
     user: savedAdmin,
   });
 });
+
 
 exports.verifyAccount = asyncHandler(async (req, res) => {
   const { token } = req.params;

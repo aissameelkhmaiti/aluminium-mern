@@ -7,7 +7,7 @@ const { cloudinaryUploadImage } = require("../utils/cloudinary");
 // Create: Ajouter un nouveau projet
 exports.addProject = asyncHandler(async (req, res) => {
   try {
-    const { category, title, description, location, status, date } = req.body;
+    const { category, title, description, clientName, location, status, date } = req.body;
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "Aucune image fournie" });
@@ -34,6 +34,7 @@ exports.addProject = asyncHandler(async (req, res) => {
       category,
       title,
       description,
+      clientName,
       location,
       status,
       date,
