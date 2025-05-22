@@ -24,6 +24,6 @@ app.use("/api/user", userRouter);
 // Error handler middleware
 // app.use(errorHandler);
 
-app.listen(process.env.PORT || 2001, () => console.log(`Server running `));
+app.listen(process.env.PORT || 2001, () => console.log(`Server running `,process.env.PORT ));
 
 module.exports = app;

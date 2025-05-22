@@ -58,6 +58,18 @@ exports.getAllProjects = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+exports.latestProjects = async (req, res) => {
+  try {
+     const latestProjects = await Project.find({ status: "Terminé" })
+      .sort({ createdAt: -1 })
+      .limit(4);
+
+    res.status(200).json(latestProjects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // Read: Obtenir un projet par son ID
 exports.getProjectById = async (req, res) => {
